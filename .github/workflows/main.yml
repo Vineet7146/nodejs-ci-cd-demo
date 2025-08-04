@@ -26,4 +26,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: yourdockerhubusername/nodejs-ci-cd-demo:latest
+          tags: vineeth2505/nodejs-ci-cd-demo:latest
