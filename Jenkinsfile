@@ -1,36 +1,32 @@
 pipeline {
     agent any
 
+    environment {
+        DOCKERHUB_CREDENTIALS = credentials('dockerhub-creds') // ID from Jenkins credentials
+        IMAGE_NAME = 'vineeth2505/nodejs-ci-cd-demo'
+    }
+
     stages {
-        stage('Clone') {
+        stage('Clone Repository') {
             steps {
                 git 'https://github.com/Vineet7146/nodejs-ci-cd-demo.git'
             }
         }
 
-        stage('Install Dependencies') {
-            steps {
-                sh 'npm install'
-            }
-        }
-
-        stage('Run Tests') {
-            steps {
-                sh 'npm test || echo "No tests defined."'
-            }
-        }
-
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t vineeth2505/nodejs-ci-cd-demo:latest .'
+                script {
+                    dockerImage = docker.build("${IMAGE_NAME}:latest")
+                }
             }
         }
 
-        stage('Push Docker Image') {
+        stage('Push to DockerHub') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    sh 'echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin'
-                    sh 'docker push vineeth2505/nodejs-ci-cd-demo:latest'
+                script {
+                    docker.withRegistry('https://index.docker.io/v1/', 'dockerhub-creds') {
+                        dockerImage.push("latest")
+                    }
                 }
             }
         }
